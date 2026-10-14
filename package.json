@@ -1,17 +1,39 @@
 {
-  "name": "docker-hardening",
+  "name": "cicd-security-gates",
   "version": "1.0.0",
-  "description": "Minimal Express app for testing a hardened Dockerfile",
+  "description": "Express app deployed through a CI/CD pipeline with security gates",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "lint": "eslint .",
+    "format-check": "prettier --check .",
+    "test": "jest --coverage"
   },
   "license": "ISC",
   "dependencies": {
     "express": "^5.2.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.12.0",
+    "globals": "^17.13.0",
+    "jest": "^30.5.2",
+    "nodemon": "^3.1.14",
+    "prettier": "^3.9.10",
+    "supertest": "^7.3.1"
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "app.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "lines": 70,
+        "statements": 70,
+        "functions": 70,
+        "branches": 70
+      }
+    }
   }
 }
