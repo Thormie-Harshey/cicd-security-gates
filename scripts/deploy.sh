@@ -26,6 +26,8 @@ K8S_DIR="$(cd "$(dirname "$0")/../k8s" && pwd)"
 set -a
 source "$K8S_DIR/$ENVIRONMENT.env"
 set +a
+# Allow a shorter watch on request (used when restoring the last known good version)
+WATCH_SECONDS="${WATCH_OVERRIDE:-$WATCH_SECONDS}"
 export IMAGE
 envsubst < "$K8S_DIR/namespace.yaml" | kubectl apply -f -
 

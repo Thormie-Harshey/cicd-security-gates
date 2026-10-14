@@ -123,3 +123,54 @@ jobs:
 
       - name: Smoke test staging
         run: bash scripts/smoke-test.sh staging
+
+  deploy-production:
+    name: Deploy to production (approval required)
+    needs: deploy-staging
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      packages: write
+    env:
+      PROD_TAG: ghcr.io/thormie-harshey/cicd-security-gates:production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create kind cluster
+        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
+
+      - name: Restore last known good version as blue
+        run: |
+          if docker manifest inspect "$PROD_TAG" > /dev/null 2>&1; then
+            WATCH_OVERRIDE=5 bash scripts/deploy.sh production "$PROD_TAG"
+          else
+            echo "No production tag yet: first production deploy, nothing to restore"
+          fi
+
+      - name: Blue-green deploy with 5-minute health watch
+        run: bash scripts/deploy.sh production "$IMAGE"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Mark this image as last known good
+        run: docker buildx imagetools create --tag "$PROD_TAG" "$IMAGE"
+
+      - name: Show cluster state
+        if: always()
+        run: kubectl get deployments,pods,services -n production -o wide
+
+      - name: Write deployment summary
+        if: always()
+        run: |
+          {
+            echo "## Production deployment: ${{ job.status }}"
+            echo "- Image: \`$IMAGE\`"
+            echo "- Commit: ${{ github.sha }}"
+          } >> "$GITHUB_STEP_SUMMARY"
