@@ -52,6 +52,12 @@ export ACTIVE_COLOUR="$TARGET"
 envsubst < "$K8S_DIR/service.yaml" | kubectl apply -f -
 log "Traffic switched to $TARGET"
 
+# Fault injection drill: break the new colour after the switch (only when asked)
+if [[ "${SIMULATE_FAILURE:-false}" == "true" ]]; then
+  log "FAULT INJECTION: removing all $TARGET pods to simulate a failure"
+  kubectl scale deployment/"web-$TARGET" -n "$NAMESPACE" --replicas=0
+fi
+
 # 7. Rollback: point the Service back at the old colour
 rollback() {
   if [[ -z "$ACTIVE" ]]; then
