@@ -41,3 +41,25 @@ jobs:
         with:
           name: coverage-report
           path: coverage/
+  sast:
+    name: SAST scan (Semgrep)
+    needs: lint
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan code, fail on high severity
+        run: semgrep scan --config p/javascript --config p/nodejs --severity ERROR --error
+
+  dependency-audit:
+    name: Dependency vulnerability audit
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Fail on high or critical vulnerabilities
+        run: npm audit --audit-level=high
