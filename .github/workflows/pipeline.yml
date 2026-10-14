@@ -9,6 +9,9 @@ on:
 permissions:
   contents: read
 
+env:
+  IMAGE: ghcr.io/thormie-harshey/cicd-security-gates:${{ github.sha }}
+
 jobs:
   lint:
     name: Lint and format check
@@ -71,8 +74,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-    env:
-      IMAGE: ghcr.io/thormie-harshey/cicd-security-gates:${{ github.sha }}
     steps:
       - uses: actions/checkout@v4
 
@@ -104,3 +105,21 @@ jobs:
       - name: Push image with SHA tag
         if: github.event_name == 'push'
         run: docker push "$IMAGE"
+
+  deploy-staging:
+    name: Deploy to staging and smoke test
+    needs: build-scan-push
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create kind cluster
+        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
+
+      - name: Blue-green deploy to staging
+        run: bash scripts/deploy.sh staging "$IMAGE"
+
+      - name: Smoke test staging
+        run: bash scripts/smoke-test.sh staging
