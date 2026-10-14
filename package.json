@@ -1,0 +1,17 @@
+{
+  "name": "docker-hardening",
+  "version": "1.0.0",
+  "description": "Minimal Express app for testing a hardened Dockerfile",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
