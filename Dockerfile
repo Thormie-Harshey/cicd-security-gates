@@ -32,7 +32,7 @@ RUN addgroup -S -g 1001 appgroup && \
 
 # Files stay owned by root, so appuser can read them but not change them
 COPY --from=build /app/node_modules ./node_modules
-COPY server.js ./
+COPY app.js server.js ./
 
 # Switch to the non-root user (numeric IDs, so Kubernetes can verify it)
 USER 1001:1001

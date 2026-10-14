@@ -63,3 +63,44 @@ jobs:
           node-version: 24
       - name: Fail on high or critical vulnerabilities
         run: npm audit --audit-level=high
+
+  build-scan-push:
+    name: Build, scan and push image
+    needs: [test, sast, dependency-audit]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE: ghcr.io/thormie-harshey/cicd-security-gates:${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image (multi-stage Dockerfile)
+        run: docker build -t "$IMAGE" .
+
+      - name: Report high and critical vulnerabilities
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE }}
+          severity: HIGH,CRITICAL
+          exit-code: "0"
+
+      - name: Fail on critical vulnerabilities
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE }}
+          severity: CRITICAL
+          exit-code: "1"
+
+      - name: Log in to GHCR
+        if: github.event_name == 'push'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push image with SHA tag
+        if: github.event_name == 'push'
+        run: docker push "$IMAGE"
