@@ -24,11 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/setup-node-deps
       - run: npm run lint
       - run: npm run format-check
 
@@ -38,11 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/setup-node-deps
       - run: npm test
       - name: Upload coverage report
         if: always()
@@ -68,9 +60,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: ./.github/actions/setup-node-deps
         with:
-          node-version: 24
+          install: "false"
       - name: Fail on high or critical vulnerabilities
         run: npm audit --audit-level=high
 

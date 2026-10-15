@@ -1,0 +1,21 @@
+name: Set up Node and install dependencies
+description: Installs Node.js 24 with npm caching, then optionally runs npm ci
+
+inputs:
+  install:
+    description: "Run npm ci after setting up Node"
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 24
+        cache: npm
+
+    - name: Install dependencies
+      if: inputs.install == 'true'
+      run: npm ci
+      shell: bash
