@@ -1,11 +1,10 @@
 const express = require("express");
 
 const app = express();
-const unusedVariable = "this is never used";
 
 // Home address
 app.get("/", (req, res) => {
-  res.json({ message: "Hello from a hardened container" });
+  res.json({ message: "Hello from a changed container" });
 });
 
 // Health check, used by Docker and Kubernetes
