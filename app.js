@@ -1,6 +1,7 @@
 const express = require("express");
 
 const app = express();
+const unusedVariable = "this is never used";
 
 // Home address
 app.get("/", (req, res) => {
